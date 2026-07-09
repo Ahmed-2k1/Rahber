@@ -1,15 +1,18 @@
 import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
 import {
   MapPin,
   Phone,
   StickyNote,
   CalendarClock,
+  PlusCircle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
 import { NiyyahBadges } from '@/components/brother/niyyah-badges'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { mapsUrl, timeAgo, niyyahList } from '@/lib/format'
 import type { Brother, Visit } from '@/lib/types'
 
@@ -109,6 +112,13 @@ export default async function BrotherPage({
             )}
           </CardContent>
         </Card>
+
+        {/* Log a visit */}
+        <Button asChild className="w-full">
+          <Link href={`/brothers/${typed.id}/visit`}>
+            <PlusCircle className="h-4 w-4" /> Log a visit
+          </Link>
+        </Button>
 
         {/* Visit history */}
         <div>

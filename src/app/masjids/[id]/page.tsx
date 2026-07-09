@@ -1,8 +1,9 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Phone, ChevronRight, Users, Heart } from 'lucide-react'
+import { MapPin, Phone, ChevronRight, Users, Heart, UserPlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
+import { Button } from '@/components/ui/button'
 import { AamaalChecklist } from '@/components/masjid/aamaal-checklist'
 import { KhuroojStats } from '@/components/masjid/khurooj-stats'
 import { UlamaCard } from '@/components/masjid/ulama-card'
@@ -202,6 +203,11 @@ export default async function MasjidPage({
             <h2 className="text-base font-semibold">
               Brothers ({brothers.length})
             </h2>
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/brothers/new?masjid=${masjid.id}`}>
+                <UserPlus className="h-4 w-4" /> Add
+              </Link>
+            </Button>
           </div>
 
           {brothers.length === 0 ? (

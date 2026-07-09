@@ -43,7 +43,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-md pb-10">
-      <AppHeader title="Masjids" />
+      <AppHeader title="Masjids" showAddBrother />
       <div className="p-4">
         <MasjidBrowser masjids={items} />
       </div>
