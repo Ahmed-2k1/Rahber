@@ -24,12 +24,14 @@ export default async function MasjidHealthPage({
 
   const { data: me } = await supabase
     .from('profiles')
-    .select('role, masjid_id')
+    .select('role, masjid_id, can_edit_health')
     .eq('id', user!.id)
     .single()
+  const forMine = me?.masjid_id === masjidId
   const allowed =
     me?.role === 'super_admin' ||
-    (me?.role === 'area_admin' && me?.masjid_id === masjidId)
+    (me?.role === 'area_admin' && forMine) ||
+    (me?.can_edit_health === true && forMine)
   if (!allowed) redirect('/admin/masjids')
 
   const [masjidRes, aamaalRes, infoRes, respRes, brothersRes] =

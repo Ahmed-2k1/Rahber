@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { UserCheck, Building2, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getMyPermissions } from '@/lib/permissions'
 import { Card, CardContent } from '@/components/ui/card'
 
 export default async function AdminHomePage() {
   const supabase = createClient()
+  const perms = await getMyPermissions()
 
   // Counts for the two main admin jobs. RLS scopes these to what the
   // current admin is allowed to see.
@@ -20,7 +22,7 @@ export default async function AdminHomePage() {
   ])
 
   const tiles = [
-    {
+    perms.canApproveMembers && {
       href: '/admin/members',
       icon: UserCheck,
       title: 'Members',
@@ -29,13 +31,18 @@ export default async function AdminHomePage() {
           ? `${pendingCount} waiting for approval`
           : 'No one waiting for approval',
     },
-    {
+    (perms.canManageMasjids || perms.canEditHealth) && {
       href: '/admin/masjids',
       icon: Building2,
       title: 'Masjids',
       hint: `${masjidCount ?? 0} active`,
     },
-  ]
+  ].filter(Boolean) as {
+    href: string
+    icon: typeof UserCheck
+    title: string
+    hint: string
+  }[]
 
   return (
     <div className="space-y-3 p-4">

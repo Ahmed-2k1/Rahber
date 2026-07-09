@@ -1,4 +1,6 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getMyPermissions } from '@/lib/permissions'
 import {
   MembersManager,
   type AdminMember,
@@ -8,25 +10,19 @@ import {
 export default async function AdminMembersPage() {
   const supabase = createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // This page is for approving members; a delegate without that power
+  // shouldn't be here.
+  const perms = await getMyPermissions()
+  if (!perms.canApproveMembers) redirect('/admin')
 
-  // The layout already guaranteed we're an admin; fetch our role so we
-  // know whether we may promote members to area_admin.
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user!.id)
-    .single()
-  const canPromote = me?.role === 'super_admin'
-
-  // RLS scopes these: super_admin sees everyone, area_admin sees their
-  // own masjid's members.
+  // RLS scopes these: super_admin sees everyone, area_admin / approver
+  // sees their own masjid's members.
   const [{ data: profiles }, { data: masjids }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, name, phone, role, masjid_id, is_approved')
+      .select(
+        'id, name, phone, role, masjid_id, is_approved, can_approve_members, can_edit_health'
+      )
       .order('is_approved')
       .order('created_at'),
     supabase
@@ -40,7 +36,8 @@ export default async function AdminMembersPage() {
     <MembersManager
       members={(profiles ?? []) as AdminMember[]}
       masjids={(masjids ?? []) as MasjidOption[]}
-      canPromote={canPromote}
+      canGrant={perms.canGrantCapabilities}
+      canPromote={perms.canPromote}
     />
   )
 }

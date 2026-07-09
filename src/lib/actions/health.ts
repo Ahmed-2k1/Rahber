@@ -21,15 +21,17 @@ async function guard(masjidId: number) {
 
   const { data: me } = await supabase
     .from('profiles')
-    .select('role, masjid_id')
+    .select('role, masjid_id, can_edit_health')
     .eq('id', user.id)
     .single()
 
-  const isAdmin =
+  const forMyMasjid = me?.masjid_id === masjidId
+  const isAllowed =
     me?.role === 'super_admin' ||
-    (me?.role === 'area_admin' && me?.masjid_id === masjidId)
+    (me?.role === 'area_admin' && forMyMasjid) ||
+    (me?.can_edit_health === true && forMyMasjid)
 
-  return { supabase, ok: isAdmin, userId: user.id }
+  return { supabase, ok: isAllowed, userId: user.id }
 }
 
 export interface AamaalFlags {

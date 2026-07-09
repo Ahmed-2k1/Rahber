@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Plus, Pencil, MapPin, Activity } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getMyPermissions } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,18 +9,8 @@ import type { Masjid } from '@/lib/types'
 
 export default async function AdminMasjidsPage() {
   const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role, masjid_id')
-    .eq('id', user!.id)
-    .single()
-  const isSuper = me?.role === 'super_admin'
-  const myMasjid = me?.masjid_id ?? null
+  const perms = await getMyPermissions()
+  const isSuper = perms.role === 'super_admin'
 
   const { data } = await supabase
     .from('masjids')
@@ -47,7 +38,13 @@ export default async function AdminMasjidsPage() {
       ) : (
         <ul className="space-y-2">
           {masjids.map((m) => {
-            const canEdit = isSuper || m.id === myMasjid
+            const mine = m.id === perms.masjidId
+            // Editing masjid details needs an admin role; editing health
+            // data can also be a delegated power.
+            const canEditDetails =
+              isSuper || (perms.role === 'area_admin' && mine)
+            const canEditHealth = isSuper || (perms.canEditHealth && mine)
+            const showActions = canEditDetails || canEditHealth
             return (
               <li key={m.id}>
                 <Card className="p-3">
@@ -65,18 +62,22 @@ export default async function AdminMasjidsPage() {
                         </p>
                       )}
                     </div>
-                    {canEdit && (
+                    {showActions && (
                       <div className="flex shrink-0 gap-2">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/admin/masjids/${m.id}/health`}>
-                            <Activity className="h-4 w-4" /> Health
-                          </Link>
-                        </Button>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/admin/masjids/${m.id}/edit`}>
-                            <Pencil className="h-4 w-4" /> Edit
-                          </Link>
-                        </Button>
+                        {canEditHealth && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/admin/masjids/${m.id}/health`}>
+                              <Activity className="h-4 w-4" /> Health
+                            </Link>
+                          </Button>
+                        )}
+                        {canEditDetails && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/admin/masjids/${m.id}/edit`}>
+                              <Pencil className="h-4 w-4" /> Edit
+                            </Link>
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>

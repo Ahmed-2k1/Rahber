@@ -56,16 +56,23 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin area: only super_admin or area_admin may enter. This is the
-  // first of three guards (middleware → admin layout → database RLS).
+  // Admin area: reachable by an admin OR a member who's been granted a
+  // delegated power (approve members / edit health). This is the first
+  // of three guards (middleware → admin layout → database RLS).
   if (user && path.startsWith('/admin')) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, can_approve_members, can_edit_health')
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'super_admin' && profile?.role !== 'area_admin') {
+    const mayEnter =
+      profile?.role === 'super_admin' ||
+      profile?.role === 'area_admin' ||
+      profile?.can_approve_members === true ||
+      profile?.can_edit_health === true
+
+    if (!mayEnter) {
       const url = request.nextUrl.clone()
       url.pathname = '/'
       return NextResponse.redirect(url)
