@@ -16,6 +16,14 @@ export default async function HomePage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Show the admin shortcut only to admins.
+  const { data: me } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const isAdmin = me?.role === 'super_admin' || me?.role === 'area_admin'
+
   // Pull every active masjid, plus its aamaal row and a count of brothers.
   const { data: masjids } = await supabase
     .from('masjids')
@@ -43,7 +51,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-md pb-10">
-      <AppHeader title="Masjids" showAddBrother />
+      <AppHeader title="Masjids" showAddBrother showAdmin={isAdmin} />
       <div className="p-4">
         <MasjidBrowser masjids={items} />
       </div>

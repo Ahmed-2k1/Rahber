@@ -1,21 +1,23 @@
 import Link from 'next/link'
-import { ArrowLeft, UserPlus } from 'lucide-react'
+import { ArrowLeft, UserPlus, Shield } from 'lucide-react'
 import { signOut } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 
 /**
  * The bar across the top of every logged-in page. Shows an optional
- * back arrow, a title, an optional global "add brother" button, and a
+ * back arrow, a title, optional "add brother" / admin buttons, and a
  * sign-out button.
  */
 export function AppHeader({
   title,
   backHref,
   showAddBrother = false,
+  showAdmin = false,
 }: {
   title: string
   backHref?: string
   showAddBrother?: boolean
+  showAdmin?: boolean
 }) {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -30,6 +32,13 @@ export function AppHeader({
         <span className="truncate text-lg font-semibold">{title}</span>
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        {showAdmin && (
+          <Button asChild variant="ghost" size="icon" aria-label="Admin">
+            <Link href="/admin">
+              <Shield className="h-5 w-5" />
+            </Link>
+          </Button>
+        )}
         {showAddBrother && (
           <Button asChild variant="ghost" size="icon" aria-label="Add brother">
             <Link href="/brothers/new">
