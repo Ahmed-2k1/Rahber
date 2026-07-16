@@ -56,28 +56,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin area: reachable by an admin OR a member who's been granted a
-  // delegated power (approve members / edit health). This is the first
-  // of three guards (middleware → admin layout → database RLS).
-  if (user && path.startsWith('/admin')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, can_approve_members, can_edit_health')
-      .eq('id', user.id)
-      .single()
-
-    const mayEnter =
-      profile?.role === 'super_admin' ||
-      profile?.role === 'area_admin' ||
-      profile?.can_approve_members === true ||
-      profile?.can_edit_health === true
-
-    if (!mayEnter) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
-    }
-  }
+  // Admin area: middleware only checks that someone's logged in (handled
+  // by the generic rule above). Whether they actually have admin access
+  // is decided by the /admin layout, which shows a friendly "not
+  // authorized" message instead of silently bouncing people away — that
+  // way the door is visible, just locked for those without access.
 
   return supabaseResponse
 }
