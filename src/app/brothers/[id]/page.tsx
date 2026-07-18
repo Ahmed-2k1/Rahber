@@ -9,7 +9,10 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
+import { PageShell } from '@/components/shared/page-shell'
+import { StaggerList, StaggerItem } from '@/components/shared/motion'
 import { NiyyahBadges } from '@/components/brother/niyyah-badges'
+import { visitedRecently } from '@/components/brother/brother-card'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -50,12 +53,22 @@ export default async function BrotherPage({
   const latest = visits[0] ?? null
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md pb-16">
-      <AppHeader title={typed.name} backHref={`/masjids/${typed.masjid_id}`} />
+    <PageShell>
+      <AppHeader
+        title={typed.name}
+        backHref={`/masjids/${typed.masjid_id}`}
+        heroTitle
+      />
+
+      {/* Large in-flow title — the sticky header's own title fades in
+          only once this scrolls away. */}
+      <h1 className="px-4 pt-4 text-[1.75rem] font-bold leading-tight tracking-[-0.01em]">
+        {typed.name}
+      </h1>
 
       <div className="space-y-4 p-4">
         {/* Contact / details */}
-        <Card>
+        <Card lit={visitedRecently(latest)}>
           <CardContent className="space-y-3 pt-6 text-sm">
             <a
               href={mapsUrl(typed.address_line, typed.landmark)}
@@ -122,7 +135,7 @@ export default async function BrotherPage({
 
         {/* Visit history */}
         <div>
-          <h2 className="mb-2 flex items-center gap-2 text-base font-semibold">
+          <h2 className="mb-2 flex items-center gap-2 text-base font-semibold tracking-tight">
             <CalendarClock className="h-4 w-4 text-primary" /> Visit history
           </h2>
 
@@ -131,9 +144,9 @@ export default async function BrotherPage({
               No visits logged yet.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <StaggerList as="ul" className="space-y-2">
               {visits.map((v) => (
-                <li key={v.id}>
+                <StaggerItem as="li" key={v.id}>
                   <Card className="p-4 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="font-medium">
@@ -152,12 +165,12 @@ export default async function BrotherPage({
                       <NiyyahBadges visit={v} />
                     </div>
                   </Card>
-                </li>
+                </StaggerItem>
               ))}
-            </ul>
+            </StaggerList>
           )}
         </div>
       </div>
-    </div>
+    </PageShell>
   )
 }

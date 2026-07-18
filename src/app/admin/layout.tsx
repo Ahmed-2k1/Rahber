@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
+import { PageShell } from '@/components/shared/page-shell'
+import { AdminNav } from '@/components/admin/admin-nav'
 import { getMyPermissions } from '@/lib/permissions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -24,41 +25,24 @@ export default async function AdminLayout({
 
   if (!perms.canEnterAdmin) {
     return (
-      <div className="mx-auto min-h-dvh max-w-md pb-16">
-        <AppHeader title="Admin" backHref="/" />
+      <PageShell>
+        <AppHeader title="Admin" backHref="/masjids" />
         <div className="p-4">
           <AccessDenied masjidId={perms.masjidId} />
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md pb-16">
-      <AppHeader title="Admin" backHref="/" />
-      <nav className="flex gap-4 border-b px-4 py-2 text-sm">
-        <Link href="/admin" className="text-muted-foreground hover:text-foreground">
-          Home
-        </Link>
-        {perms.canApproveMembers && (
-          <Link
-            href="/admin/members"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Members
-          </Link>
-        )}
-        {(perms.canManageMasjids || perms.canEditHealth) && (
-          <Link
-            href="/admin/masjids"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Masjids
-          </Link>
-        )}
-      </nav>
+    <PageShell>
+      <AppHeader title="Admin" backHref="/masjids" />
+      <AdminNav
+        showMembers={perms.canApproveMembers}
+        showMasjids={perms.canManageMasjids || perms.canEditHealth}
+      />
       {children}
-    </div>
+    </PageShell>
   )
 }
 

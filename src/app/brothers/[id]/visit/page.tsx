@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
+import { PageShell } from '@/components/shared/page-shell'
 import { VisitForm } from '@/components/brother/visit-form'
 import type { Brother } from '@/lib/types'
 
@@ -29,7 +30,7 @@ export default async function LogVisitPage({
   const typed = brother as Pick<Brother, 'id' | 'name'>
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md pb-16">
+    <PageShell>
       <AppHeader title="Log a visit" backHref={`/brothers/${brotherId}`} />
       <div className="p-4">
         <p className="mb-4 text-sm text-muted-foreground">
@@ -37,6 +38,6 @@ export default async function LogVisitPage({
         </p>
         <VisitForm brotherId={brotherId} />
       </div>
-    </div>
+    </PageShell>
   )
 }

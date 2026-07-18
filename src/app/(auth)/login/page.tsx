@@ -17,12 +17,14 @@ export default function LoginPage({
   searchParams: { error?: string }
 }) {
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Rahber</CardTitle>
-          <CardDescription>Sign in to continue</CardDescription>
-        </CardHeader>
+    <Card className="w-full max-w-sm">
+      <CardHeader className="items-center text-center">
+        <CardTitle className="text-[1.75rem] font-bold tracking-[-0.01em]">
+          Rahber
+        </CardTitle>
+        <span aria-hidden className="block h-[3px] w-8 rounded-full bg-gold" />
+        <CardDescription>Sign in to continue</CardDescription>
+      </CardHeader>
         <CardContent>
           {searchParams.error && (
             <p className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
@@ -62,7 +64,6 @@ export default function LoginPage({
             </Link>
           </p>
         </CardContent>
-      </Card>
-    </main>
+    </Card>
   )
 }

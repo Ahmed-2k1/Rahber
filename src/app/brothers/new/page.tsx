@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
+import { PageShell } from '@/components/shared/page-shell'
 import { BrotherForm, type MasjidOption } from '@/components/brother/brother-form'
 
 export default async function NewBrotherPage({
@@ -30,14 +31,14 @@ export default async function NewBrotherPage({
       ? masjids.find((m) => m.id === wantedId) ?? null
       : null
 
-  const backHref = fixedMasjid ? `/masjids/${fixedMasjid.id}` : '/'
+  const backHref = fixedMasjid ? `/masjids/${fixedMasjid.id}` : '/masjids'
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md pb-16">
+    <PageShell>
       <AppHeader title="Add brother" backHref={backHref} />
       <div className="p-4">
         <BrotherForm masjids={masjids} fixedMasjid={fixedMasjid} />
       </div>
-    </div>
+    </PageShell>
   )
 }

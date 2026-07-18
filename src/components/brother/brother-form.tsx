@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { Reveal } from '@/components/shared/motion'
 
 export interface MasjidOption {
   id: number
@@ -104,7 +105,7 @@ export function BrotherForm({
   // ---- Review screen (global add only) ---------------------------------
   if (reviewing) {
     return (
-      <div className="space-y-4">
+      <Reveal className="space-y-4">
         <p className="text-sm text-muted-foreground">
           Please double-check the details below before saving.
         </p>
@@ -143,7 +144,7 @@ export function BrotherForm({
             {submitting ? 'Saving…' : 'Confirm &amp; save'}
           </Button>
         </div>
-      </div>
+      </Reveal>
     )
   }
 

@@ -23,7 +23,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/masjids')
 }
 
 export async function signup(formData: FormData) {
@@ -56,7 +56,7 @@ export async function signup(formData: FormData) {
   // → send them to the "check your email" page.
   if (data.session) {
     revalidatePath('/', 'layout')
-    redirect('/')
+    redirect('/masjids')
   }
 
   redirect('/verify-email')
@@ -66,5 +66,6 @@ export async function signOut() {
   const supabase = createClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
-  redirect('/login')
+  // Back to the front door — the ayah landing.
+  redirect('/')
 }

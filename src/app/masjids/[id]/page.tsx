@@ -1,13 +1,15 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Phone, ChevronRight, Users, Heart, UserPlus } from 'lucide-react'
+import { MapPin, ChevronRight, Users, Heart, UserPlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
+import { PageShell } from '@/components/shared/page-shell'
+import { StaggerList, StaggerItem, Reveal } from '@/components/shared/motion'
 import { Button } from '@/components/ui/button'
 import { AamaalChecklist } from '@/components/masjid/aamaal-checklist'
 import { KhuroojStats } from '@/components/masjid/khurooj-stats'
 import { UlamaCard } from '@/components/masjid/ulama-card'
-import { NiyyahBadges } from '@/components/brother/niyyah-badges'
+import { BrotherCard } from '@/components/brother/brother-card'
 import {
   Card,
   CardContent,
@@ -15,7 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { mapsUrl, timeAgo, RESPONSIBLE_ROLE_LABELS } from '@/lib/format'
+import { mapsUrl, AAMAAL_ITEMS, RESPONSIBLE_ROLE_LABELS } from '@/lib/format'
 import type {
   Brother,
   Visit,
@@ -77,6 +79,10 @@ export default async function MasjidPage({
 
   const ladyTaleem = info?.lady_taleem_locations ?? 0
 
+  // The mihrab corner lights only when every aamaal is running.
+  const aamaalComplete =
+    !!aamaal && AAMAAL_ITEMS.every(({ key }) => aamaal[key])
+
   // Brothers (id + name) holding each responsible role.
   const membersForRole = (role: ResponsibleRole) =>
     responsible
@@ -106,8 +112,14 @@ export default async function MasjidPage({
   ]
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md pb-16">
-      <AppHeader title={masjid.name} backHref="/" />
+    <PageShell>
+      <AppHeader title={masjid.name} backHref="/masjids" heroTitle />
+
+      {/* Large in-flow title — the sticky header's own title fades in
+          only once this scrolls away. */}
+      <h1 className="px-4 pt-4 text-[1.75rem] font-bold leading-tight tracking-[-0.01em]">
+        {masjid.name}
+      </h1>
 
       <div className="space-y-4 p-4">
         {/* Masjid address */}
@@ -124,84 +136,96 @@ export default async function MasjidPage({
         )}
 
         {/* 5 Aamaal */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">5 Aamaal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AamaalChecklist aamaal={aamaal} />
-          </CardContent>
-        </Card>
+        <Reveal>
+          <Card lit={aamaalComplete}>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base tracking-tight">5 Aamaal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AamaalChecklist aamaal={aamaal} />
+            </CardContent>
+          </Card>
+        </Reveal>
 
         {/* Responsible brothers */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="h-4 w-4 text-primary" /> Responsible brothers
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {leadership.length === 0 ? (
-              <p className="text-muted-foreground">Not recorded yet.</p>
-            ) : (
-              <ul className="space-y-1.5">
-                {leadership.map((r) => (
-                  <li key={r.id}>
-                    <Link
-                      href={`/brothers/${r.brother_id}`}
-                      className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-muted"
-                    >
-                      <Badge variant="secondary" className="shrink-0">
-                        {RESPONSIBLE_ROLE_LABELS[r.role as ResponsibleRole]}
-                      </Badge>
-                      <span className="flex-1">{r.brothers?.name ?? 'Unknown'}</span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <Reveal>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base tracking-tight">
+                <Users className="h-4 w-4 text-primary" /> Responsible brothers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {leadership.length === 0 ? (
+                <p className="text-muted-foreground">Not recorded yet.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {leadership.map((r) => (
+                    <li key={r.id}>
+                      <Link
+                        href={`/brothers/${r.brother_id}`}
+                        className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-muted"
+                      >
+                        <Badge variant="secondary" className="shrink-0">
+                          {RESPONSIBLE_ROLE_LABELS[r.role as ResponsibleRole]}
+                        </Badge>
+                        <span className="flex-1">{r.brothers?.name ?? 'Unknown'}</span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </Reveal>
 
         {/* Khurooj — time given in jamaat */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Time in jamaat</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <KhuroojStats groups={khuroojGroups} />
-          </CardContent>
-        </Card>
+        <Reveal>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base tracking-tight">
+                Time in jamaat
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <KhuroojStats groups={khuroojGroups} />
+            </CardContent>
+          </Card>
+        </Reveal>
 
         {/* Ulama (clickable) */}
-        <UlamaCard ulama={ulamaMembers} />
+        <Reveal>
+          <UlamaCard ulama={ulamaMembers} />
+        </Reveal>
 
         {/* Lady Taleem */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Heart className="h-4 w-4 text-primary" /> Lady Taleem
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            {ladyTaleem > 0 ? (
-              <p>
-                Happening in{' '}
-                <span className="font-semibold">{ladyTaleem}</span>{' '}
-                {ladyTaleem === 1 ? 'location' : 'locations'}
-              </p>
-            ) : (
-              <p className="text-muted-foreground">Not yet started</p>
-            )}
-          </CardContent>
-        </Card>
+        <Reveal>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base tracking-tight">
+                <Heart className="h-4 w-4 text-primary" /> Lady Taleem
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm">
+              {ladyTaleem > 0 ? (
+                <p>
+                  Happening in{' '}
+                  <span className="font-semibold tabular-nums">{ladyTaleem}</span>{' '}
+                  {ladyTaleem === 1 ? 'location' : 'locations'}
+                </p>
+              ) : (
+                <p className="text-muted-foreground">Not yet started</p>
+              )}
+            </CardContent>
+          </Card>
+        </Reveal>
 
         {/* Brothers list */}
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-base font-semibold">
-              Brothers ({brothers.length})
+            <h2 className="text-base font-semibold tracking-tight">
+              Brothers <span className="tabular-nums">({brothers.length})</span>
             </h2>
             <Button asChild size="sm" variant="outline">
               <Link href={`/brothers/new?masjid=${masjid.id}`}>
@@ -215,62 +239,16 @@ export default async function MasjidPage({
               No brothers added for this masjid yet.
             </p>
           ) : (
-            <ul className="space-y-2">
-              {brothers.map((b) => {
-                const last = latestVisit(b.visits)
-                return (
-                  <li key={b.id}>
-                    <Card className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <Link
-                          href={`/brothers/${b.id}`}
-                          className="min-w-0 flex-1"
-                        >
-                          <p className="truncate font-medium">{b.name}</p>
-                          <p className="truncate text-sm text-muted-foreground">
-                            {b.address_line}
-                          </p>
-                        </Link>
-                        <Link href={`/brothers/${b.id}`}>
-                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        </Link>
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                        <a
-                          href={mapsUrl(b.address_line, b.landmark)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-primary"
-                        >
-                          <MapPin className="h-3.5 w-3.5" /> Map
-                        </a>
-                        {b.phone && (
-                          <a
-                            href={`tel:${b.phone}`}
-                            className="inline-flex items-center gap-1 text-primary"
-                          >
-                            <Phone className="h-3.5 w-3.5" /> Call
-                          </a>
-                        )}
-                        <span className="text-muted-foreground">
-                          {last
-                            ? `Visited ${timeAgo(last.visited_at)}`
-                            : 'Not visited yet'}
-                        </span>
-                      </div>
-
-                      <div className="mt-2">
-                        <NiyyahBadges visit={last} />
-                      </div>
-                    </Card>
-                  </li>
-                )
-              })}
-            </ul>
+            <StaggerList as="ul" className="space-y-2">
+              {brothers.map((b) => (
+                <StaggerItem as="li" key={b.id}>
+                  <BrotherCard brother={b} lastVisit={latestVisit(b.visits)} />
+                </StaggerItem>
+              ))}
+            </StaggerList>
           )}
         </div>
       </div>
-    </div>
+    </PageShell>
   )
 }

@@ -2,18 +2,35 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/*
+  Every card carries the "mihrab corner": the top-left corner is
+  rounded far more than the other three — a quiet echo of an arch.
+
+  `lit` draws a thin gold trace along that corner. It is a status
+  signal with one meaning app-wide — "this record reflects active,
+  healthy tabligh engagement" — so it must stay rare: full-aamaal
+  masjids and recently-visited brothers only.
+*/
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { lit?: boolean }
+>(({ className, lit = false, children, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "relative rounded-lg rounded-tl-arch border bg-card text-card-foreground shadow-sm transition-transform active:scale-[0.98]",
       className
     )}
     {...props}
-  />
+  >
+    {lit && (
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -left-px -top-px h-8 w-8 rounded-tl-arch border-l border-t border-gold/60"
+      />
+    )}
+    {children}
+  </div>
 ))
 Card.displayName = "Card"
 

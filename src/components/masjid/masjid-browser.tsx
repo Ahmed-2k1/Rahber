@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { Search, ChevronRight } from "lucide-react"
+import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { MasjidCard } from "@/components/masjid/masjid-card"
+import { StaggerList, StaggerItem } from "@/components/shared/motion"
 
 export interface MasjidListItem {
   id: number
@@ -34,7 +33,7 @@ export function MasjidBrowser({ masjids }: { masjids: MasjidListItem[] }) {
           placeholder="Search masjid or area…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-9"
+          className="bg-card pl-9"
         />
       </div>
 
@@ -45,36 +44,13 @@ export function MasjidBrowser({ masjids }: { masjids: MasjidListItem[] }) {
             : "No masjids match your search."}
         </p>
       ) : (
-        <ul className="space-y-2">
+        <StaggerList as="ul" className="space-y-2">
           {filtered.map((m) => (
-            <li key={m.id}>
-              <Link href={`/masjids/${m.id}`} className="block">
-                <Card className="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-muted/50">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{m.name}</p>
-                    {m.area && (
-                      <p className="truncate text-sm text-muted-foreground">
-                        {m.area}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <div className="text-right">
-                      <Badge variant="secondary">
-                        {m.brotherCount}{" "}
-                        {m.brotherCount === 1 ? "brother" : "brothers"}
-                      </Badge>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {m.aamaalCount}/6 aamaal
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </Card>
-              </Link>
-            </li>
+            <StaggerItem as="li" key={m.id}>
+              <MasjidCard masjid={m} />
+            </StaggerItem>
           ))}
-        </ul>
+        </StaggerList>
       )}
     </div>
   )

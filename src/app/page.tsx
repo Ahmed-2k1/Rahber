@@ -1,52 +1,25 @@
-import { redirect } from 'next/navigation'
+import { Amiri } from 'next/font/google'
 import { createClient } from '@/lib/supabase/server'
-import { AppHeader } from '@/components/shared/app-header'
-import {
-  MasjidBrowser,
-  type MasjidListItem,
-} from '@/components/masjid/masjid-browser'
-import { AAMAAL_ITEMS } from '@/lib/format'
-import type { MasjidAamaal } from '@/lib/types'
+import { LandingSequence } from '@/components/landing/landing-sequence'
 
-export default async function HomePage() {
+// Classic Naskh face for Qur'anic text — loaded only on this page.
+const amiri = Amiri({ subsets: ['arabic'], weight: '400' })
+
+/*
+  The front door for everyone, signed in or not. Each visit begins
+  with the two ayahs this whole app is in service of — the reminder
+  before the work — then one button leads into the app itself. The
+  orchestrated entrance lives in LandingSequence.
+*/
+export default async function LandingPage() {
   const supabase = createClient()
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  // Pull every active masjid, plus its aamaal row and a count of brothers.
-  const { data: masjids } = await supabase
-    .from('masjids')
-    .select('id, name, area, masjid_aamaal(*), brothers(count)')
-    .eq('is_active', true)
-    .order('name')
-
-  const items: MasjidListItem[] = (masjids ?? []).map((m) => {
-    const raw = m.masjid_aamaal as MasjidAamaal | MasjidAamaal[] | null
-    const aamaal = Array.isArray(raw) ? raw[0] : raw
-    const aamaalCount = aamaal
-      ? AAMAAL_ITEMS.filter(({ key }) => aamaal[key]).length
-      : 0
-    const brothers = m.brothers as { count: number }[] | null
-    const brotherCount = brothers?.[0]?.count ?? 0
-
-    return {
-      id: m.id,
-      name: m.name,
-      area: m.area,
-      brotherCount,
-      aamaalCount,
-    }
-  })
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md pb-10">
-      <AppHeader title="Masjids" showAddBrother showAdmin />
-      <div className="p-4">
-        <MasjidBrowser masjids={items} />
-      </div>
-    </div>
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-6 py-12 text-center">
+      <LandingSequence amiriClass={amiri.className} showAuthLinks={!user} />
+    </main>
   )
 }

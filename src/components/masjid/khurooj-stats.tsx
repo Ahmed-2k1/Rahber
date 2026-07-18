@@ -41,7 +41,7 @@ export function KhuroojStats({ groups }: { groups: KhuroojGroup[] }) {
                 active ? "border-primary bg-primary/5" : "hover:bg-muted/50"
               )}
             >
-              <p className="text-2xl font-semibold leading-none">
+              <p className="text-2xl font-semibold leading-none tabular-nums">
                 {g.members.length}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">{g.label}</p>

@@ -38,9 +38,11 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
-  // Pages anyone can open without logging in
+  // Pages anyone can open without logging in. "/" is the ayah landing
+  // page — the front door for everyone, signed in or not.
   const publicPaths = ['/login', '/register', '/verify-email', '/auth']
-  const isPublic = publicPaths.some((p) => path.startsWith(p))
+  const isPublic =
+    path === '/' || publicPaths.some((p) => path.startsWith(p))
 
   // Not logged in + trying to open a private page => go to login
   if (!user && !isPublic) {
@@ -49,10 +51,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Already logged in + on the login/register page => go home
+  // Already logged in + on the login/register page => into the app
   if (user && (path.startsWith('/login') || path.startsWith('/register'))) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/masjids'
     return NextResponse.redirect(url)
   }
 
