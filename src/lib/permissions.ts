@@ -27,6 +27,8 @@ export interface MyPermissions {
   canPromote: boolean
   /** Whether the /admin area should be reachable at all. */
   canEnterAdmin: boolean
+  /** Add brothers / log visits — approved members and admins only. */
+  canContributeData: boolean
 }
 
 export async function getMyPermissions(): Promise<MyPermissions> {
@@ -41,7 +43,7 @@ export async function getMyPermissions(): Promise<MyPermissions> {
 
   const { data } = await supabase
     .from('profiles')
-    .select('role, masjid_id, can_approve_members, can_edit_health')
+    .select('role, masjid_id, can_approve_members, can_edit_health, is_approved')
     .eq('id', user.id)
     .single()
 
@@ -53,6 +55,7 @@ export async function getMyPermissions(): Promise<MyPermissions> {
   const canEditHealth = isSuper || isArea || Boolean(data?.can_edit_health)
   const canManageMasjids = isSuper
   const canGrantCapabilities = isSuper || isArea
+  const canContributeData = isSuper || isArea || Boolean(data?.is_approved)
 
   return {
     userId: user.id,
@@ -64,6 +67,7 @@ export async function getMyPermissions(): Promise<MyPermissions> {
     canGrantCapabilities,
     canPromote: isSuper,
     canEnterAdmin: canApproveMembers || canEditHealth || canManageMasjids,
+    canContributeData,
   }
 }
 
@@ -78,5 +82,6 @@ function empty(): MyPermissions {
     canGrantCapabilities: false,
     canPromote: false,
     canEnterAdmin: false,
+    canContributeData: false,
   }
 }

@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/shared/app-header'
 import { PageShell } from '@/components/shared/page-shell'
+import { AccessDenied } from '@/components/shared/access-denied'
 import { BrotherForm, type MasjidOption } from '@/components/brother/brother-form'
+import { getMyPermissions } from '@/lib/permissions'
 
 export default async function NewBrotherPage({
   searchParams,
@@ -15,6 +17,8 @@ export default async function NewBrotherPage({
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const perms = await getMyPermissions()
 
   const { data } = await supabase
     .from('masjids')
@@ -37,7 +41,14 @@ export default async function NewBrotherPage({
     <PageShell>
       <AppHeader title="Add brother" backHref={backHref} />
       <div className="p-4">
-        <BrotherForm masjids={masjids} fixedMasjid={fixedMasjid} />
+        {perms.canContributeData ? (
+          <BrotherForm masjids={masjids} fixedMasjid={fixedMasjid} />
+        ) : (
+          <AccessDenied
+            masjidId={perms.masjidId}
+            title="You're not approved to add brothers yet"
+          />
+        )}
       </div>
     </PageShell>
   )

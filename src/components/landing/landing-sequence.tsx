@@ -107,7 +107,7 @@ export function LandingSequence({
         className="flex w-full flex-col items-center gap-3 pt-2"
       >
         <Button asChild className="w-full max-w-xs">
-          <Link href="/masjids">Find masjids</Link>
+          <Link href="/masjids">Bismillah, let&apos;s get started</Link>
         </Button>
         {showAuthLinks && (
           <p className="text-sm text-muted-foreground">

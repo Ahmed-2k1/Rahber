@@ -17,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { mapsUrl, timeAgo, niyyahList } from '@/lib/format'
+import { getMyPermissions } from '@/lib/permissions'
 import type { Brother, Visit } from '@/lib/types'
 
 export default async function BrotherPage({
@@ -30,6 +31,8 @@ export default async function BrotherPage({
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const perms = await getMyPermissions()
 
   const brotherId = Number(params.id)
   if (Number.isNaN(brotherId)) notFound()
@@ -127,11 +130,13 @@ export default async function BrotherPage({
         </Card>
 
         {/* Log a visit */}
-        <Button asChild className="w-full">
-          <Link href={`/brothers/${typed.id}/visit`}>
-            <PlusCircle className="h-4 w-4" /> Log a visit
-          </Link>
-        </Button>
+        {perms.canContributeData && (
+          <Button asChild className="w-full">
+            <Link href={`/brothers/${typed.id}/visit`}>
+              <PlusCircle className="h-4 w-4" /> Log a visit
+            </Link>
+          </Button>
+        )}
 
         {/* Visit history */}
         <div>

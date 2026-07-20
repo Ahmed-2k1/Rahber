@@ -8,6 +8,7 @@ import {
 } from '@/components/masjid/masjid-browser'
 import { AAMAAL_ITEMS } from '@/lib/format'
 import type { MasjidAamaal } from '@/lib/types'
+import { getMyPermissions } from '@/lib/permissions'
 
 export default async function MasjidListPage() {
   const supabase = createClient()
@@ -16,6 +17,8 @@ export default async function MasjidListPage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const perms = await getMyPermissions()
 
   // Pull every active masjid, plus its aamaal row and a count of brothers.
   const { data: masjids } = await supabase
@@ -44,7 +47,12 @@ export default async function MasjidListPage() {
 
   return (
     <PageShell>
-      <AppHeader title="Masjids" backHref="/" showAddBrother showAdmin />
+      <AppHeader
+        title="Masjids"
+        backHref="/"
+        showAddBrother={perms.canContributeData}
+        showAdmin
+      />
       <div className="p-4">
         <MasjidBrowser masjids={items} />
       </div>

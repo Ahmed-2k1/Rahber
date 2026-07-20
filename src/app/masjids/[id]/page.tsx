@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { mapsUrl, AAMAAL_ITEMS, RESPONSIBLE_ROLE_LABELS } from '@/lib/format'
+import { getMyPermissions } from '@/lib/permissions'
 import type {
   Brother,
   Visit,
@@ -44,6 +45,8 @@ export default async function MasjidPage({
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const perms = await getMyPermissions()
 
   const masjidId = Number(params.id)
   if (Number.isNaN(masjidId)) notFound()
@@ -227,11 +230,13 @@ export default async function MasjidPage({
             <h2 className="text-base font-semibold tracking-tight">
               Brothers <span className="tabular-nums">({brothers.length})</span>
             </h2>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/brothers/new?masjid=${masjid.id}`}>
-                <UserPlus className="h-4 w-4" /> Add
-              </Link>
-            </Button>
+            {perms.canContributeData && (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/brothers/new?masjid=${masjid.id}`}>
+                  <UserPlus className="h-4 w-4" /> Add
+                </Link>
+              </Button>
+            )}
           </div>
 
           {brothers.length === 0 ? (
