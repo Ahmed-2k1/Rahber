@@ -89,7 +89,7 @@ export async function createMasjid(
   input: MasjidInput
 ): Promise<ActionResult<{ masjidId: number }>> {
   const { supabase, user, role } = await callerRole()
-  if (role !== 'super_admin') {
+  if (role !== 'super_admin' || !user) {
     return { ok: false, error: 'Only a super admin can add a masjid.' }
   }
   if (!input.name?.trim()) return { ok: false, error: 'Please enter a name.' }
@@ -102,7 +102,7 @@ export async function createMasjid(
       area: input.area?.trim() || null,
       lat: input.lat ?? null,
       lng: input.lng ?? null,
-      created_by: user!.id,
+      created_by: user.id,
     })
     .select('id')
     .single()

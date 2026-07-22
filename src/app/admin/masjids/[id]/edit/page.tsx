@@ -1,6 +1,8 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { MasjidForm, type MasjidFormValues } from '@/components/admin/masjid-form'
+import { AccessDenied } from '@/components/shared/access-denied'
+import { getMyPermissions } from '@/lib/permissions'
 import type { Masjid } from '@/lib/types'
 
 export default async function EditMasjidPage({
@@ -8,27 +10,25 @@ export default async function EditMasjidPage({
 }: {
   params: { id: string }
 }) {
-  const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role, masjid_id')
-    .eq('id', user!.id)
-    .single()
+  const perms = await getMyPermissions()
 
   const masjidId = Number(params.id)
   if (Number.isNaN(masjidId)) notFound()
 
   // Super admin can edit any; area admin only their own.
   const allowed =
-    me?.role === 'super_admin' ||
-    (me?.role === 'area_admin' && me?.masjid_id === masjidId)
-  if (!allowed) redirect('/admin/masjids')
+    perms.role === 'super_admin' ||
+    (perms.role === 'area_admin' && perms.masjidId === masjidId)
 
+  if (!allowed) {
+    return (
+      <div className="p-4">
+        <AccessDenied masjidId={perms.masjidId} />
+      </div>
+    )
+  }
+
+  const supabase = createClient()
   const { data: masjid } = await supabase
     .from('masjids')
     .select('id, name, address, area, lat, lng')

@@ -1,21 +1,17 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { AccessDenied } from '@/components/shared/access-denied'
 import { MasjidForm } from '@/components/admin/masjid-form'
+import { getMyPermissions } from '@/lib/permissions'
 
 export default async function NewMasjidPage() {
-  const supabase = createClient()
+  const perms = await getMyPermissions()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Adding a masjid is super-admin only.
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user!.id)
-    .single()
-  if (me?.role !== 'super_admin') redirect('/admin/masjids')
+  if (!perms.canManageMasjids) {
+    return (
+      <div className="p-4">
+        <AccessDenied masjidId={perms.masjidId} />
+      </div>
+    )
+  }
 
   return (
     <div className="p-4">

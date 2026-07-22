@@ -1,10 +1,12 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import {
   HealthEditor,
   type ResponsibleItem,
   type BrotherOption,
 } from '@/components/admin/health-editor'
+import { AccessDenied } from '@/components/shared/access-denied'
+import { getMyPermissions } from '@/lib/permissions'
 import type { AamaalFlags } from '@/lib/actions/health'
 import type { MasjidResponsible } from '@/lib/types'
 
@@ -13,26 +15,24 @@ export default async function MasjidHealthPage({
 }: {
   params: { id: string }
 }) {
-  const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const perms = await getMyPermissions()
 
   const masjidId = Number(params.id)
   if (Number.isNaN(masjidId)) notFound()
 
-  const { data: me } = await supabase
-    .from('profiles')
-    .select('role, masjid_id, can_edit_health')
-    .eq('id', user!.id)
-    .single()
-  const forMine = me?.masjid_id === masjidId
   const allowed =
-    me?.role === 'super_admin' ||
-    (me?.role === 'area_admin' && forMine) ||
-    (me?.can_edit_health === true && forMine)
-  if (!allowed) redirect('/admin/masjids')
+    perms.canEditHealth &&
+    (perms.role === 'super_admin' || perms.masjidId === masjidId)
+
+  if (!allowed) {
+    return (
+      <div className="p-4">
+        <AccessDenied masjidId={perms.masjidId} />
+      </div>
+    )
+  }
+
+  const supabase = createClient()
 
   const [masjidRes, aamaalRes, infoRes, respRes, brothersRes] =
     await Promise.all([
