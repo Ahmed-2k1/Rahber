@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from '@/lib/actions/brothers'
+import { friendlyError } from '@/lib/actions/errors'
 
 /**
  * Server Action for logging a visit to a brother. Same rules as adding
@@ -47,17 +48,13 @@ export async function logVisit(
   })
 
   if (error) {
-    if (
-      error.code === '42501' ||
-      /row-level security|violates row-level/i.test(error.message ?? '')
-    ) {
-      return {
-        ok: false,
-        error:
-          'Your account isn’t approved to log visits yet. Ask an admin to approve you.',
-      }
+    return {
+      ok: false,
+      error: friendlyError(
+        error,
+        'Your account isn’t approved to log visits yet. Ask an admin to approve you.'
+      ),
     }
-    return { ok: false, error: error.message }
   }
 
   revalidatePath(`/brothers/${input.brother_id}`)

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from '@/lib/actions/brothers'
 import type { ResponsibleRole } from '@/lib/types'
+import { friendlyError } from '@/lib/actions/errors'
 
 /**
  * Admin actions for a masjid's tabligh "health" data: the 5 aamaal, the
@@ -55,7 +56,11 @@ export async function updateAamaal(
     .update({ ...flags, updated_by: userId })
     .eq('masjid_id', masjidId)
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to make this change.'),
+    }
   revalidatePath(`/masjids/${masjidId}`)
   revalidatePath(`/admin/masjids/${masjidId}/health`)
   return { ok: true }
@@ -89,7 +94,11 @@ export async function updateMasjidInfo(
     .update(clean)
     .eq('masjid_id', masjidId)
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to make this change.'),
+    }
   revalidatePath(`/masjids/${masjidId}`)
   revalidatePath(`/admin/masjids/${masjidId}/health`)
   return { ok: true }
@@ -112,7 +121,11 @@ export async function addResponsible(
     notes: notes.trim() || null,
   })
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to make this change.'),
+    }
   revalidatePath(`/masjids/${masjidId}`)
   revalidatePath(`/admin/masjids/${masjidId}/health`)
   return { ok: true }
@@ -130,18 +143,12 @@ export async function removeResponsible(
     .delete()
     .eq('id', responsibleId)
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to make this change.'),
+    }
   revalidatePath(`/masjids/${masjidId}`)
   revalidatePath(`/admin/masjids/${masjidId}/health`)
   return { ok: true }
-}
-
-function friendly(error: { code?: string; message?: string }): string {
-  if (
-    error.code === '42501' ||
-    /row-level security|violates row-level/i.test(error.message ?? '')
-  ) {
-    return 'You don’t have permission to make this change.'
-  }
-  return error.message ?? 'Something went wrong.'
 }

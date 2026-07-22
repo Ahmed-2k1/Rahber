@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from '@/lib/actions/brothers'
+import { friendlyError } from '@/lib/actions/errors'
 
 /**
  * Admin actions for masjids. Adding a masjid is super-admin only; an
@@ -106,7 +107,11 @@ export async function createMasjid(
     .select('id')
     .single()
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to make this change.'),
+    }
 
   revalidatePath('/admin/masjids')
   revalidatePath('/')
@@ -134,7 +139,11 @@ export async function updateMasjid(
     })
     .eq('id', id)
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to make this change.'),
+    }
 
   revalidatePath('/admin/masjids')
   revalidatePath(`/masjids/${id}`)
@@ -154,19 +163,13 @@ export async function setMasjidActive(
     .from('masjids')
     .update({ is_active: active })
     .eq('id', id)
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to make this change.'),
+    }
 
   revalidatePath('/admin/masjids')
   revalidatePath('/')
   return { ok: true }
-}
-
-function friendly(error: { code?: string; message?: string }): string {
-  if (
-    error.code === '42501' ||
-    /row-level security|violates row-level/i.test(error.message ?? '')
-  ) {
-    return 'You don’t have permission to make this change.'
-  }
-  return error.message ?? 'Something went wrong.'
 }

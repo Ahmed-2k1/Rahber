@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { friendlyError } from '@/lib/actions/errors'
 
 /**
  * Server Action for adding a brother (an address entry).
@@ -58,25 +59,16 @@ export async function addBrother(
     .single()
 
   if (error) {
-    if (isRlsDenied(error)) {
-      return {
-        ok: false,
-        error:
-          'Your account isn’t approved to add brothers yet. Ask an admin to approve you.',
-      }
+    return {
+      ok: false,
+      error: friendlyError(
+        error,
+        'Your account isn’t approved to add brothers yet. Ask an admin to approve you.'
+      ),
     }
-    return { ok: false, error: error.message }
   }
 
   // Refresh the masjid page so the new brother shows up immediately.
   revalidatePath(`/masjids/${data.masjid_id}`)
   return { ok: true, brotherId: data.id, masjidId: data.masjid_id }
-}
-
-/** True when Postgres/Supabase blocked the write via Row Level Security. */
-function isRlsDenied(error: { code?: string; message?: string }): boolean {
-  return (
-    error.code === '42501' ||
-    /row-level security|violates row-level/i.test(error.message ?? '')
-  )
 }

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from '@/lib/actions/brothers'
+import { friendlyError } from '@/lib/actions/errors'
 
 /**
  * Admin actions for approving members and setting their delegated
@@ -80,7 +81,11 @@ export async function approveMember(input: {
     .update(update)
     .eq('id', input.profileId)
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to change this member.'),
+    }
 
   revalidatePath('/admin/members')
   revalidatePath('/admin')
@@ -106,7 +111,11 @@ export async function updatePermissions(input: {
     })
     .eq('id', input.profileId)
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to change this member.'),
+    }
 
   revalidatePath('/admin/members')
   return { ok: true }
@@ -128,19 +137,13 @@ export async function revokeMember(profileId: string): Promise<ActionResult> {
     })
     .eq('id', profileId)
 
-  if (error) return { ok: false, error: friendly(error) }
+  if (error)
+    return {
+      ok: false,
+      error: friendlyError(error, 'You don’t have permission to change this member.'),
+    }
 
   revalidatePath('/admin/members')
   revalidatePath('/admin')
   return { ok: true }
-}
-
-function friendly(error: { code?: string; message?: string }): string {
-  if (
-    error.code === '42501' ||
-    /row-level security|violates row-level/i.test(error.message ?? '')
-  ) {
-    return 'You don’t have permission to change this member.'
-  }
-  return error.message ?? 'Something went wrong.'
 }

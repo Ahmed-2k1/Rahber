@@ -41,12 +41,11 @@ npx supabase gen types typescript --local > src/lib/database.types.ts
 src/
   app/                     # Next.js App Router pages
     (auth)/                # Auth group: login, register, verify-email
-    (app)/                 # Authenticated group
-      masjids/             # Masjid list (home)
-      masjids/[id]/        # Masjid detail (dashboard + brothers list)
-      brothers/[id]/       # Brother detail + visit history
-      brothers/new/        # Add brother form
-      visits/new/          # Log visit form
+    masjids/               # Masjid list (home)
+    masjids/[id]/          # Masjid detail (dashboard + brothers list)
+    brothers/[id]/         # Brother detail + visit history
+    brothers/[id]/visit/   # Log visit form
+    brothers/new/          # Add brother form
     admin/                 # Admin panel (super_admin + area_admin)
       masjids/             # Manage masjids
       members/             # Approve/link members
@@ -54,13 +53,17 @@ src/
     ui/                    # shadcn/ui primitives (auto-generated, do not edit)
     masjid/                # MasjidCard, AamaalChecklist, ResponsibleBrothers
     brother/               # BrotherCard, NiyyahBadges, VisitHistory
+    admin/                 # Admin panel components
     shared/                # Layout, Navbar, SearchInput
   lib/
     supabase/
       client.ts            # Browser Supabase client
       server.ts            # Server-side Supabase client (cookies)
+      middleware.ts        # Session refresh + route protection (used by src/middleware.ts)
+    actions/               # Server actions (brothers, visits, masjids, health, members, auth)
     types.ts               # App-level TypeScript types
-    database.types.ts      # Auto-generated from Supabase schema (do not edit)
+    # database.types.ts not yet generated — run:
+    # npx supabase gen types typescript --local > src/lib/database.types.ts
   middleware.ts            # Route protection based on auth + role
 supabase/
   migrations/              # SQL migration files (sequential)
@@ -150,7 +153,7 @@ Role is stored in `profiles.role`. Supabase Row Level Security (RLS) enforces al
 - Never expose the service role key to the browser
 
 ### Route protection
-`middleware.ts` redirects unauthenticated users away from `(app)` routes and checks `profiles.role` for admin routes.
+`middleware.ts` redirects unauthenticated users away from authenticated routes (`masjids/`, `brothers/`, `admin/`, etc. — these are not grouped under an `(app)` folder) and checks `profiles.role` for admin routes.
 
 ### Mobile-first UI
 - All layouts are single-column by default, expand on `md:` and above
